@@ -44,11 +44,17 @@ for edicao in episodes_link:
         else:
             tag = tag.nextSibling        
     print(edicao + ' [' + str(ind) + ']')
+    ep_link = [edicao]*(ind-1)
 
     setimo_selo_ep = [i.text for i in ed_content.find({'h4':'Dicas do Sétimo Selo e links'}).findAllNext({'p','ul'},limit=ind-1)]
     print(setimo_selo_ep)
+
+    df = pd.DataFrame({'link':ep_link,'dicas': setimo_selo_ep })
+    print(df)
     setimo_selo.append(setimo_selo_ep)
 
+
 #print(len(episodes_link))
-print(setimo_selo)
+
+#print(setimo_selo)
     
