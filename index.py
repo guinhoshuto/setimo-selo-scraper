@@ -3,7 +3,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import bs4
 
-url = 'https://xadrezverbal.com/category/audio/podcast-do-xadrez-verbal://xadrezverbal.com/category/audio/podcast-do-xadrez-verbal/'
+url = 'https://xadrezverbal.com/category/audio/podcast-do-xadrez-verbal://xadrezverbal.com/category/audio/podcast-do-xadrez-verbal/page/2'
 
 req = requests.get(url)
 if req.status_code == 200:
@@ -24,37 +24,56 @@ episodes_link = [episode_link.get('href') for episode_link in episodes]
 #print(episodes_name)
 #print(episodes_link)
 
-
-setimo_selo = []
+df_setimoselo = pd.DataFrame(columns=['nome','link', 'dicas', 'dica-link'])
 for edicao in episodes_link:
-    print(edicao)
+    # print(edicao)
     ed_content = BeautifulSoup(requests.get(edicao).content, 'html.parser')
     #tem = ed_content.find({'h4':'Dicas do Sétimo Selo e links'}) 
     #print(tem.findAllNext('p', limit=5))
+    ep_nomes = ed_content.find('h2', {'class':'post-title'}).text
     tag = ed_content.find({'h4':'Dicas do Sétimo Selo e links'}).findNext('p')
-    ind = 0 
+
+    ond = 0
     while True:
-        if isinstance(tag, bs4.element.Tag): 
-            if tag.name == 'ul':
+        if isinstance(tag, bs4.element.Tag):
+            if tag.text == 'Canal do Xadrez Verbal no Telegram':
+                print('foi')
                 break
-            else: 
-                #print('entrou')
-                ind+=1
+            else:
+                print(tag.text)
+                ond+=1
+                print(ond)
                 tag = tag.nextSibling
         else:
-            tag = tag.nextSibling        
-    print(edicao + ' [' + str(ind) + ']')
-    ep_link = [edicao]*(ind-1)
+            tag = tag.nextSibling
+            
+    print(ond)
+    # ind = 0 
+    # while True:
+    #     if isinstance(tag, bs4.element.Tag): 
+    #         if tag.name == 'ul':
+    #             break
+    #         else: 
+    #             #print('entrou')
+    #             ind+=1
+    #             tag = tag.nextSibling
+    #     else:
+    #         tag = tag.nextSibling        
+    # print(edicao + ' [' + str(ind) + ']')
+    ep_link = [edicao]*(ond-1)
+    ep_nome = [ep_nomes]*(ond-1)
 
-    setimo_selo_ep = [i.text for i in ed_content.find({'h4':'Dicas do Sétimo Selo e links'}).findAllNext({'p','ul'},limit=ind-1)]
-    print(setimo_selo_ep)
+    setimo_selo_ep = [i.text for i in ed_content.find({'h4':'Dicas do Sétimo Selo e links'}).findAllNext({'p','ul'},limit=ond-1)]
+    dica_link = [j['href'] for j in ed_content.find({'h4':'Dicas do Sétimo Selo e links'}).findAllNext({'a'},limit=ond-1)]
 
-    df = pd.DataFrame({'link':ep_link,'dicas': setimo_selo_ep })
-    print(df)
-    setimo_selo.append(setimo_selo_ep)
+    # print(dica_link)
+    # print(setimo_selo_ep)
+
+    df = pd.DataFrame({'nome':ep_nome,'link':ep_link, 'dicas':setimo_selo_ep,'dica-link': dica_link})
+    df_setimoselo = pd.concat([df_setimoselo,df])
 
 
 #print(len(episodes_link))
-
+print(df_setimoselo)
 #print(setimo_selo)
-    
+df_setimoselo.to_csv('setimo_selo.csv')
